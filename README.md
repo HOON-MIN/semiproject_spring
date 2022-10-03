@@ -41,6 +41,3 @@ MVC패턴을 이해하고 기초적인 CRUD를 이용한 쇼핑몰을 제작하�
 <img width="425" alt="image" src="https://user-images.githubusercontent.com/106335468/193512125-583aa1d1-5cc7-4b8d-8252-600f005c2959.png">
 <br>
 <img width="425" alt="image" src="https://user-images.githubusercontent.com/106335468/193512226-e79171ec-07fb-46a9-823d-4b10d958175a.png">
-<br>
-<img width="600" alt="image" src="https://user-images.githubusercontent.com/106335468/193456754-8f431503-99e1-4990-8673-eb6e0c75fb4e.png">
-
