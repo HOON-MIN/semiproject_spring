@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jhy_item">
+	<!-- 성별에 따른 상품 리스트 출력 -->
+	<select id="list" parameterType="searchvo" resultType="ivo">
+		select r_num, i_no, i_name, i_price, i_category, i_img from
+		(select rownum r_num, a.* from
+		(select i_no, i_name, i_price, i_category, i_img from item where
+		 i_gender = #{gender}
+		<choose>
+			<when test="category != null and category != ''">
+				and i_category = #{category}
+				<if test="search != null and search !=''">
+					and i_name like '%' || #{search} || '%'
+				</if>
+			</when>
+			<when test="search != null and search !=''">
+				<if test="category != null and category != ''">
+					and i_category = #{category}
+				</if>
+					and i_name like '%' || #{search} || '%'
+			</when>
+		</choose>
+		order by i_no
+		)a 
+		)where r_num between #{beginPerPage} and #{endPerPage}
+	</select>
+
+	<!-- 잡화 리스트 출력
+	<select id="category" parameterType="searchvo" resultType="ivo">
+		select r_num, i_no, i_name, i_price, i_category, i_img 
+		from (
+		select rownum r_num, a.* from (
+		select i_no, i_name, i_price, i_category, i_img from
+		item where
+		i_category = '잡화'
+		<choose>
+			<when test="category != null and category != ''">
+				and i_category = #{category}
+				<if test="search != null and search !=''">
+					and i_name like '%' || #{search} || '%'
+				</if>
+			</when>
+			<when test="search != null and search !=''">
+				<if test="category != null and category != ''">
+					and i_category = #{category}
+				</if>
+					and i_name like '%' || #{search} || '%'
+			</when>
+		</choose>
+		order by i_no
+		) a
+		) where r_num between #{beginPerPage} and #{endPerPage}
+	</select> -->
+
+	<!-- 상품의 총 개수 출력 -->
+	<select id="totalCount" parameterType="searchvo" resultType="int">
+		select count(*) from item
+		where i_gender = #{gender}
+		<choose>
+			<when test="category != null and category != ''">
+				and i_category = #{category}
+				<if test="search != null and search !=''">
+					and i_name like '%' || #{search} || '%'
+				</if>
+			</when>
+			<when test="search != null and search !=''">
+				<if test="category != null and category != ''">
+					and i_category = #{category}
+				</if>
+					and	i_name like '%' || #{search} || '%' 
+			</when>
+		</choose>
+	</select>
+	
+	<resultMap type="ivo" id="itemResult">
+		<id property="i_no" column="i_no" javaType="int" />
+		<result property="i_price" column="i_price" javaType="int" />
+		<result property="i_name" column="i_name" />
+		<result property="i_category" column="i_category" />
+		<result property="i_comm" column="i_comm" />
+		<result property="i_img" column="i_img" />
+		<result property="i_gender" column="i_gender" />
+
+		<association property="stockvo" column="i_no"
+			javaType="svo">
+			<id property="s_no" column="i_no" javaType="int" />
+			<result property="s_stock" column="s_stock" javaType="int" />
+			<result property="s_name" column="s_name" />
+		</association>
+	</resultMap>
+
+	<select id="detail" parameterType="int" resultMap="itemResult">
+		select
+		i.i_no,
+		i.i_name, i.i_price, i.i_category, i.i_comm, i.i_img, i.i_gender,
+		s.s_stock,s.s_name from item i, stock s
+		where i.i_no = s.s_no and
+		i.i_no = #{s_no}
+	</select>
+
+
+	<resultMap type="ivo" id="purchaseResult">
+		<id property="i_no" column="i_no" javaType="int" />
+		<collection property="ordersvo" javaType="java.util.List"
+			ofType="ovo">
+			<result property="ord_no" column="ord_no" javaType="int" />
+			<result property="mem_no" column="mem_no" javaType="int" />
+			<result property="i_no" column="i_no" javaType="int" />
+			<result property="ord_count" column="ord_count" javaType="int" />
+			<result property="i_status" column="i_status" />
+			<result property="ord_address" column="ord_address" />
+			<result property="ord_name" column="ord_name" />
+			<result property="ord_date" column="ord_date" />
+			<result property="ord_edate" column="ord_edate" />
+		</collection>
+	</resultMap>
+	<select id="purchaseList" parameterType="int"
+		resultMap="purchaseResult">
+		select
+		i.i_name,i.i_status,o.ord_address,o.ord_name,o.ord_date,o.ord_edate
+		from item i, orders o
+		where i.i_no=o.i_no and mem_no = #{mem_no}
+	</select>
+</mapper>

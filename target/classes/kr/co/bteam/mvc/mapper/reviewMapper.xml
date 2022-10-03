@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cmr_review">
+<insert id="add" parameterType="rvo">
+	insert into reviews values(reviews_seq.nextVal, 
+	#{ord_no},#{mem_no},#{i_no},#{r_name},#{r_comm},#{r_score},sysdate)
+</insert>
+
+<resultMap type="rvo" id="review">
+		<id property="mem_no" column="mem_no" javaType="int"/>
+		<result property="r_num" column="r_num" javaType="int"/> 
+		<result property="i_no" column="i_no" javaType="int"/>
+		<result property="r_name" column="r_name"/>
+		<result property="r_comm" column="r_comm"/>
+		<result property="r_score" column="r_score" javaType="int"/>
+		<result property="r_date" column="r_date"/>
+
+		<collection property="mvo" javaType="java.util.List" 
+		ofType="mvo">
+		<id property="mem_no" column="mem_no" javaType="int"/>
+		<result property="mem_name" column="mem_name" /> 
+		
+		</collection>
+	</resultMap>
+	<!-- itemDetail에서 해당상품의 리스트를 보여줌 -->
+	<select id="reviewlist" parameterType="int" resultMap="review">
+		     select rownum r_num ,a.* from( select r.i_no,
+		m.mem_name,r.r_name,r.r_comm ,r.r_score,r.r_date 
+		from reviews r ,member m 
+		 where r.mem_no = m.mem_no ) a where a.i_no =${i_no}
+	</select>
+
+	<select id="chkreview" parameterType="rvo" resultType="int">
+select count(*) from reviews where ord_no=#{ord_no}
+	</select>
+	<select id="chkstatus" parameterType="ovo" resultType="int">
+select count(*) from orders where i_status = '배송 완료' and ord_no=#{ord_no}
+	</select>
+	
+	<!-- 리뷰가 달려있다면 값이 나옴 -->	
+	<select id="chkino" parameterType="rvo" resultType="rvo">
+	select r_name,ord_no,r_comm,r_score,i_no 
+	from reviews where ord_no=${ord_no}
+	</select>
+	<!--  -->
+
+</mapper>
+
+

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="ybh_itemStock">
+ <!-- item, stock 기입 query문 -->
+ 	<insert id="additem" parameterType="ivo">
+ 		insert into item 
+        values(item_seq.nextVal, #{i_name}, #{i_price}, #{i_category}, #{i_comm},#{i_img},#{i_gender})
+    </insert>
+
+    <insert id="addstock" parameterType="svo">
+    	<selectKey keyProperty="s_no" resultType="int" order="BEFORE">
+    		select item_seq.currVal from dual
+    	</selectKey>
+    	
+    	insert into stock values(#{s_no},#{s_stock},#{s_name},#{s_phone})
+    </insert>
+    
+<!-- item,stock totalCnt query문 -->
+<select id="totalCount" parameterType="searchvo" resultType="int">
+	select count(*) from item
+	<choose>
+		<when test="category != null and category != ''">
+			where i_gender = #{category}
+			<if test="search != null and search != ''">
+			AND i_name like '%' || #{search} || '%'</if>
+		</when>
+		<when test="search != null and search != ''">
+			<if test="category != null and category != ''"> 
+			where i_gender = #{category} </if>
+			<where> i_name like '%' || #{search} || '%'</where>
+		</when>
+	</choose>
+</select>
+	<!-- search값이 없을때 -->
+	
+	<!--  association  -->
+	<resultMap type="ivo" id="stockResult">
+    <id property="i_no" column="i_no" javaType="int"/>
+    <result property="r_num" column="r_num"/>
+    <result property="i_name" column="i_name"/>
+    <result property="i_price" column="i_price"/>
+    <result property="i_category" column="i_category"/>
+    <result property="i_gender" column="i_gender"/>
+    <result property="i_img" column="i_img"/>
+    <!--property="sphone" getSphone() 
+    column="sabun" => s.sabun sabun
+     javaType="sphonevo" : 참조하는 실제 VO
+     -->
+    <association property="stockvo" column="i_no" javaType="svo">
+        <id property="s_no" column="s_no"/>
+        <result property="s_stock" column="s_stock"/>
+        <result property="s_name" column="s_name"/>
+    </association>
+</resultMap>
+
+<!-- item,stock 페이징 query문 -->	
+
+<select id="listpage" parameterType="searchvo" resultMap="stockResult">
+    			
+select r_num, i_no, i_name, i_price, i_category, i_gender, i_img,  s_stock, s_name from 
+    	(select rownum r_num, a.* from 
+    		(select i.i_no, i.i_name, i.i_price, i.i_category, i.i_gender, 
+    			i.i_img, s.s_no, s.s_stock, s.s_name
+    		 	from item i, stock s where i.i_no = s.s_no 
+		<choose>
+		 <when test="category != null and category != ''">
+			 and i_gender = #{category} 
+			 <if test="search != null and search != ''">AND i_name like '%' || #{search} || '%'</if>
+		 </when>
+		 <when test="search != null and search != ''">
+		 	<if test="category != null and category != ''"> and i_gender = #{category} </if> 
+		 	and i_name like '%' || #{search} || '%'
+		 </when>
+		</choose>
+	 order by i.i_no) a) where r_num BETWEEN #{beginPerPage} and #{endPerPage}   			
+	
+</select>
+
+ <!-- item,stock 상세보기 query문 -->
+ 	<resultMap type="ivo" id="isdetail">
+    <id property="i_no" column="i_no" javaType="int"/>
+    <result property="i_name" column="i_name"/>
+    <result property="i_price" column="i_price"/>
+    <result property="i_category" column="i_category"/>
+    <result property="i_comm" column="i_comm"/>
+    <result property="i_gender" column="i_gender"/>
+    <result property="i_img" column="i_img"/>
+        <association property="stockvo" column="i_no" javaType="svo">
+        <id property="s_no" column="s_no"/>
+        <result property="s_stock" column="s_stock"/>
+        <result property="s_name" column="s_name"/>
+        <result property="s_phone" column="s_phone"/>
+    </association>
+</resultMap>
+       
+    <select id="idetail" parameterType="int" resultMap="isdetail">
+    select i.i_no, i.i_name, i.i_price,i.i_category,
+		   i.i_comm,i.i_img,i_gender, s.s_stock, s.s_name, s.s_phone 
+		   from item i, stock s where i.i_no=s.s_no and i.i_no = #{i_no}  
+    </select>
+ <!-- item,stock 수정 query문 -->   
+ <update id="updateitem" parameterType="ivo">
+    update item set i_price=#{i_price},i_comm=#{i_comm},i_img=#{i_img}
+    where i_no=#{i_no}
+</update>
+<update id="updateitemstock" parameterType="svo">
+	update stock set s_stock=#{s_stock},s_phone=#{s_phone}
+    where s_no=#{s_no}
+</update>
+ 
+ <delete id="deleteitem" parameterType="int">
+ 	 delete from item where i_no=#{i_no}
+ </delete>
+ <delete id="deletestock" parameterType="int">
+ 	 delete from stock where s_no=#{i_no}
+  </delete>
+ 
+ <!-- 상품명 중복체크 -->
+ <select id="itemNameChk" parameterType="map" resultType="int">
+ select count(*) from item where i_name = #{i_name}
+ </select>
+ </mapper>
+    

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cmr_member">
+<!-- 관리자가 회원 리스트 볼때 - 구매 가장 많이 한 member ranking AOP -->
+<resultMap type="ovo" id="rankMemResult">
+	<id property="mem_no" column="mem_no" javaType="int"/>
+	<result property="mem_no" column="mem_no"/>
+	<result property="ordCnt" column="ordCnt"/>
+	<result property="rn" column="rn"/>
+	<association property="mvo" column="mem_no" javaType="mvo">
+		<id property="mem_no" column="mem_no"/>
+		<result property="mem_name" column="mem_name"/>
+	</association>
+</resultMap>
+<!-- mem_name, mem_no, ordcnt, rn -->
+<select id="rankMember" resultMap="rankMemResult">
+	SELECT a.mem_no, a.ordCnt, a.rn, m.mem_name FROM (
+        select mem_no, ordCnt, 
+        dense_rank() over(order by ordCnt desc) as rn
+        from (
+            select mem_no, sum(ord_count) ordCnt 
+            from orders group by mem_no
+        ) 
+	) a, member m 
+	WHERE a.mem_no = m.mem_no and a.rn <![CDATA[<]]> 4
+	order by a.rn
+</select>
+
+<select id="adminTotalCount" resultType="int" parameterType="searchvo">
+ 	select count(*) from member
+ 	<choose>
+ 	  <when test="search != null and search != ''">
+ 	  	where MEM_NAME like '%' || #{search} || '%'
+ 	  </when>
+ 	</choose>
+</select>
+
+<!-- member list mapper Query -->
+<select id="listpage" resultType="mvo" parameterType="searchvo">
+  select * from(select rownum r_num, a.* from (
+     	select * from member
+     	
+     	<if test="search != null and search != ''">
+     	where mem_name like '%'||#{search}||'%'	
+     	</if>
+     	order by mem_no desc)a)
+	where r_num BETWEEN #{beginPerPage} and #{endPerPage}
+</select>
+
+
+
+<!-- member Detail Query -->
+<select id="detail" parameterType="int" resultType="mvo">
+	select * from member where mem_no=#{num}
+</select>
+
+<!-- delete Query -->
+<delete id="del" parameterType="int">
+    delete from member where mem_no=#{num}
+</delete>
+
+<!-- update Query -->
+<update id="update" parameterType="mvo">
+    update member set mem_id=#{mem_id},mem_pw=#{mem_pw},
+    	mem_name=#{mem_name},mem_phone=#{mem_phone},mem_adr=#{mem_adr}
+    	where mem_no=#{mem_no}
+</update>
+
+
+<!-- member list에서의 검색 기능 Query 
+<select id="search" parameterType="String" resultType="mvo">
+	select * from (
+	    select * from (
+	        select rownum r_num, a. * from (
+	            select * from member order by mem_no desc
+	        ) a
+	    ) where r_num BETWEEN 1 and 10
+	) where MEM_NAME like '%#{msg}%'
+</select>
+-->
+
+</mapper>
+
+

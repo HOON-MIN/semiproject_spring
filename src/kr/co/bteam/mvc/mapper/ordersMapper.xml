@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cmr_orders">
+	<!-- 구매 (insert) 박태진 -->
+	<insert id="add" parameterType="ovo">
+		insert into orders values(
+		orders_seq.nextVal,#{mem_no},#{i_no},#{ord_count},'상품준비중',
+		#{ord_address},#{ord_name},sysdate,null,0)
+	</insert>
+	
+	<!-- 일반회원용 totalCount : 최미르 -->
+	<select id="totalCount" parameterType="mvo" resultType="int">
+		select count(*) from orders
+		where mem_no = #{mem_no}
+	</select>
+
+	<!-- 일반회원 리스트 페이지 쿼리 : 최미르 -->
+	<resultMap type="ovo" id="memTotalResult">
+		<id property="mem_no" column="mem_no" javaType="int" />
+		<result property="r_num" column="r_num" />
+		<result property="ord_no" column="ord_no" />
+		<result property="ord_name" column="ord_name" />
+		<result property="ord_count" column="ord_count" />
+		<result property="totalPrice" column="totalPrice" />
+		<result property="i_status" column="i_status" />
+		<result property="i_no" column="i_no" />
+		<result property="ord_address" column="ord_address" />
+		<result property="rcnt" column="rcnt" />
+		<association property="mvo" column="mem_no" javaType="mvo">
+			<id property="mem_no" column="mem_no" />
+			<result property="mem_no" column="mem_no" />
+		</association>
+		<association property="ivo" column="mem_no" javaType="ivo">
+			<id property="i_no" column="i_no" />
+			<result property="i_name" column="i_name" />
+		</association>
+	</resultMap>
+	<select id="listpage" parameterType="map"
+		resultMap="memTotalResult">
+		<!-- 주문번호, 상품명, 수량, 총 금액, 주문인, 수령장소, 주문상태 -->
+		select r_num, ord_no, ord_name, i_name, ord_count,
+		totalPrice, ord_address, i_status, i_no, ord_address, rcnt from (
+		select rownum r_num, a.* from (
+		select o.ord_no, i.i_name , o.ord_name,
+		o.ord_count, i.i_price*o.ord_count as totalPrice,
+		o.i_status, o.ord_address, o.i_no, o.rcnt
+		from orders o, item i, member m
+		where i.i_no = o.i_no and o.mem_no=m.mem_no and m.mem_no = #{mem_no}
+		order by o.ord_no desc
+		) a
+		) where r_num between #{beginPerPage} and #{endPerPage}
+	</select>
+	
+	<!-- 판매 top3 item 뽑는 Query : 최미르 -->
+	<resultMap type="ovo" id="rankOrder">
+		<id property="ord_no" column="ord_no" javaType="int" />
+		<result property="ordTotalCnt" column="ordTotalCnt" />
+		<association property="ivo" column="ord_no" javaType="ivo">
+			<id property="i_no" column="i_no" />
+			<result property="i_name" column="i_name" />
+			<result property="i_img" column="i_img" />
+		</association>
+	</resultMap>
+	<select id="bestOrder" resultMap="rankOrder">
+		select i.i_name, i.i_no, ordTotalCnt, i.i_img from (
+		select i_no,
+		sum(ord_count) as ordTotalCnt
+		from orders group by i_no order by
+		ordTotalCnt desc
+		) a, item i where rownum <![CDATA[<]]>
+		4 and a.i_no = i.i_no
+	</select>
+	<!-- 리뷰관련 체크 업데이트-->
+	<update id="updatercnt" parameterType="int">
+   update orders set rcnt = 2 where ord_no=#{ord_no}
+    </update>
+	
+</mapper>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="jhy_basket">
+ 	<!-- 장바구니 추가 -->
+	<insert id="add" parameterType="bvo">
+ 		insert into basket values(basket_seq.nextVal, #{mem_no}, #{i_no}, #{b_stock})
+ 	</insert>
+ 	
+ 	<!-- 장바구니 리스트 출력 -->
+ 	<resultMap type="bvo" id="basketResult">
+			<id property="b_num" column="b_num" javaType="int" />
+			<result property="mem_no" column="mem_no" javaType="int" />
+			<result property="i_no" column="i_no" javaType="int" />
+			<result property="b_stock" column="b_stock" javaType="int" />
+			<result property="r_num" column="r_num" javaType="int"/>
+		<association property="itemvo" javaType="ivo">
+		<id property="i_no" column="i_no" javaType="int" />
+		<result property="i_name" column="i_name" />
+		<result property="i_price" column="i_price" javaType="int"/>
+		</association>
+		<association property="ordersvo" javaType="ovo">
+		<id property="ord_no" column="ord_no" javaType="int"/>
+			<result property="totalPrice" column="totalPrice"/>
+		</association>
+	</resultMap>
+	<select id="basketlist" parameterType="map"
+		resultMap="basketResult">
+		select * from ( select rownum r_num, a.* from (
+		select b.b_num, i.i_name, i.i_price, i.i_price*b.b_stock as totalPrice, b.b_stock from basket
+		b, item i where
+		i.i_no = b.i_no and mem_no = #{mem_no} order by b.b_num desc) a
+		) where r_num
+		between #{beginPerPage} and #{endPerPage}
+	</select>
+	
+	<!-- 장바구니 세부 페이지 출력 -->
+	<resultMap type="bvo" id="basketdetail">
+			<id property="b_num" column="b_num" javaType="int" />
+			<result property="mem_no" column="mem_no" javaType="int" />
+			<result property="i_no" column="i_no" javaType="int" />
+			<result property="b_stock" column="b_stock" javaType="int" />
+		
+		<association property="itemvo" javaType="ivo">
+		<id property="i_no" column="i_no" javaType="int" />
+		<result property="i_name" column="i_name" />
+		<result property="i_price" column="i_price" javaType="int"/>
+		<result property="i_category" column="i_category"/>
+		<result property="i_gender" column="i_gender"/>
+		</association>
+		
+		<association property="ordersvo" javaType="ovo">
+		<id property="ord_no" column="ord_no" javaType="int"/>
+			<result property="totalPrice" column="totalPrice"/>
+		</association>
+	</resultMap>
+	<select id="basketdetail" parameterType="int" resultMap="basketdetail">
+		select b.b_num, b.i_no, i.i_name, i.i_price, i.i_category, i.i_gender,
+		i.i_price*b.b_stock as totalPrice, b.b_stock 
+		from basket	b, item i where
+		i.i_no = b.i_no and b.b_num = #{b_num}
+	</select>
+	
+	<!-- 장바구니 수정 -->
+	<update id="update" parameterType="bvo">
+		update basket set b_stock = #{b_stock} where b_num = #{b_num}
+	</update>
+	
+	<!-- 장바구니 삭제 -->
+	<delete id="del" parameterType="int">
+		delete from basket where b_num = #{b_num}
+	</delete>
+	
+	<!-- 장바구니 총 개수 출력 -->
+	<select id="totalCount" parameterType="map" resultType="int">
+		select count(*) from basket
+		where mem_no = #{mem_no}
+	</select>
+	
+	<!-- 장바구니 구매 -->
+	<insert id="addorder" parameterType="bvo">
+		insert into orders values(
+		orders_seq.nextVal,#{mem_no},#{i_no},#{b_stock},'상품준비중',
+		#{ordersvo.ord_address},#{ordersvo.ord_name},sysdate,null,null)
+	</insert>
+ </mapper>

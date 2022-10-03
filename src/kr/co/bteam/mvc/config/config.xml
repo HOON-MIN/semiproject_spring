@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-config.dtd">
+ <configuration>
+ 	<typeAliases>
+ 	<!-- mapper 추가 공간 memberDTO는 alias mvo reviewDTO는 alias rvo 이런식으로 구분 -->
+ 		<typeAlias type="kr.co.bteam.mvc.vo.BasketVO" alias="bvo"/>
+ 		<typeAlias type="kr.co.bteam.mvc.vo.ItemVO" alias="ivo"/>
+ 		<typeAlias type="kr.co.bteam.mvc.vo.MemberVO" alias="mvo"/>
+ 		<typeAlias type="kr.co.bteam.mvc.vo.OrdersVO" alias="ovo"/>
+ 		<typeAlias type="kr.co.bteam.mvc.vo.ReviewsVO" alias="rvo"/>
+ 		<typeAlias type="kr.co.bteam.mvc.vo.StockVO" alias="svo"/>
+ 		<typeAlias type="kr.co.bteam.mvc.vo.SearchVO" alias="searchvo"/>
+ 		<typeAlias type="kr.co.bteam.mvc.vo.MemberLogVO" alias="lvo"/> 		
+ 		<typeAlias type="kr.co.bteam.mvc.vo.UserVO" alias="uvo"/> 		
+ 	</typeAliases>
+<!-- spring에게 위임을 한다. -->	
+<!--  	<environments default=""> -->
+<!--  		<environment id=""> -->
+<!--  		<transactionManager type="JDBC"></transactionManager> -->
+<!--  		<dataSource type="JNDI"> -->
+<!--  		<property name="data_source" value="java:comp/env/jdbc/myora"/> -->
+<!--  		</dataSource> -->
+<!--  		</environment> -->
+<!--  	</environments> -->
+<!--  	<mappers> -->
+<!--  		<mapper resource="mapper/memberMapper.xml"/> -->
+<!--  	</mappers> -->
+ </configuration>

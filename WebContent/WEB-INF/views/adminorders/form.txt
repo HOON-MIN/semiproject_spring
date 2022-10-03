@@ -1,0 +1,60 @@
+<div>
+			<label>주문자명</label>
+			<input type="text" name="ord_name" id="ord_name" value="${vo.ord_name}"/>
+			<label>회원명</label>
+			<input type="text" name="mem_name" id="mem_name" readonly="readonly" value="${vo.membervo.mem_name}"/>
+			</div>
+			<div>
+			<label>상품명</label>
+			<input type="text" name="i_name" id="i_name" readonly="readonly" value="${vo.itemvo.i_name}"/>
+			<label>상품가격</label>
+			<input type="text" name="i_price" id="i_price" readonly="readonly" value="${vo.itemvo.i_price}"/>			
+			<label>주문수량</label>
+			<input type="text" name="ord_count" id="ord_count" readonly="readonly" value="${vo.ord_count}"/>	
+			<label>총가격</label>
+			<input type="text" name="totalPrice" id="totalPrice" readonly="readonly" value="${vo.totalPrice}"/>
+			</div>
+										
+			<div>
+				<label>상품사진</label>
+			<p style="float: left;">이미지명 : ${vo.itemvo.i_img }</p>
+			<img style="width: 50%;" src="${pageContext.request.contextPath}/resources/imagefile/${vo.itemvo.i_img}" id="imgx">
+			</div>	
+			
+			<div class="row mb-3">
+			<label>배송주소</label>
+			<input type="text" name="ord_address" id="ord_address" value="${vo.ord_address}"/>
+			</div>
+			<div>
+			<label>배송상태</label>
+            <select class="btn btn-outline-secondary" name="category" id="select1" >
+			<option value="">${vo.i_status}</option>
+			<option value="발송완료">발송완료</option>
+			<option value="배송중">배송중</option>
+			<option value="배송완료">배송완료</option>
+			<option value="주문취소">주문취소</option>
+			</select>	
+			</div>	
+			<div>
+			<label>주문날짜</label>
+			<input type="text" name="ord_date" id="ord_date" readonly="readonly" value="${vo.ord_date}"/>	
+			<label>배송완료날짜</label>
+			<input type="text" name="ord_edate" id="ord_edate" readonly="ord_edate" value="${vo.ord_edate}"/>
+			</div>			
+			<div class="form-group" style="text-align: right; margin-top: 10px;" >
+			<input type="button" value="수정" id="upordersbtn" class="btn btn-outline-secondary"/>
+			<input type="button" value="삭제" id="delordersbtn" class="btn btn-outline-secondary"/>
+			</div>
+			
+			
+			<table class="table">
+  <thead>
+    ...
+  </thead>
+  <tbody>
+    ...
+  </tbody>
+  <tfoot>
+    ...
+  </tfoot>
+</table>

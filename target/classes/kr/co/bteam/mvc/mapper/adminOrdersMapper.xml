@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ybh_orders">
+<!-- 관리자 리스트 페이지 totalCount -->
+<select id="adminTotoalCount" parameterType="searchvo" resultType="int">
+  select count(*) from orders o, item i 
+  where i.i_no = o.i_no
+	<choose>
+	 <when test="category != null and category != ''">
+		 AND o.i_status = #{category} 
+		 <if test="search != null and search != ''">
+		 AND i.i_name like '%' || #{search} || '%'</if>
+	 </when>
+	 <when test="search != null and search != ''">
+	 	and i.i_name like '%' || #{search} || '%'
+	 	<if test="category != null and category != ''"> 
+	 	and o.i_status = #{category} </if>  
+	 </when>
+	</choose>
+</select>
+
+<!-- 관리자 리스트 페이지 쿼리 -->
+<resultMap type="ovo" id="totalResult">
+<id property="mem_no" column="mem_no" javaType="int"/>
+<result property="r_num" column="r_num"/>
+<result property="ord_no" column="ord_no"/>
+<result property="ord_name" column="ord_name"/>
+<result property="ord_count" column="ord_count"/>
+<result property="totalPrice" column="totalPrice"/>
+<result property="i_status" column="i_status"/>
+<result property="ord_address" column="ord_address"/>
+<result property="ord_date" column="ord_date"/>
+<result property="ord_edate" column="ord_edate"/>
+<association property="mvo" column="mem_no" javaType="mvo">
+	<id property="mem_no" column="mem_no"/>
+	<result property="mem_name" column="mem_name"/>
+</association>
+<association property="ivo" column="mem_no" javaType="ivo">
+	<id property="i_no" column="i_no"/>
+	<result property="i_name" column="i_name"/>
+</association>
+</resultMap>
+<select id="adminlistpage" parameterType="searchvo" resultMap="totalResult">
+    select r_num, ord_no,ord_name, totalPrice, ord_count, i_status, ord_address,
+    		 ord_date, ord_edate, mem_name, i_name from (
+         select rownum r_num, a.* from (
+           select  o.ord_no, o.ord_name, o.mem_no,  
+           o.i_no, o.ord_count, i.i_price*o.ord_count as totalPrice, 
+           o.i_status, o.ord_address,o.ord_date, o.ord_edate, m.mem_name, i.i_name
+           from orders o, item i, member m  where i.i_no = o.i_no and o.mem_no = m.mem_no 
+		<choose>
+		 <when test="category != null and category != ''">
+			 and i_status = #{category} <if test="search != null and search != ''">AND i_name like '%' || #{search} || '%'</if>
+		 </when>
+		 <when test="search != null and search != ''">
+		 	<if test="category != null and category != ''"> and i_status = #{category} </if> and i_name like '%' || #{search} || '%'
+		 </when>
+		</choose>      
+           order by o.ord_no desc) a) where r_num between #{beginPerPage} and #{endPerPage}
+</select>
+
+<!-- 주문 상세정보보기 쿼리 -->
+ 	<resultMap type="ovo" id="ordersdetail">
+<id property="mem_no" column="mem_no" javaType="int"/>
+<result property="ord_no" column="ord_no"/>
+<result property="ord_name" column="ord_name"/>
+<result property="ord_count" column="ord_count"/>
+<result property="totalPrice" column="totalPrice"/>
+<result property="i_status" column="i_status"/>
+<result property="ord_address" column="ord_address"/>
+<result property="ord_date" column="ord_date"/>
+<result property="ord_edate" column="ord_edate"/>
+<association property="mvo" column="mem_no" javaType="mvo">
+	<id property="mem_no" column="mem_no"/>
+	<result property="mem_name" column="mem_name"/>
+</association>
+<association property="ivo" column="mem_no" javaType="ivo">
+	<id property="i_no" column="i_no"/>
+	<result property="i_name" column="i_name"/>
+	<result property="i_price" column="i_price"/>
+	<result property="i_img" column="i_img"/>
+</association>
+</resultMap>
+
+<select id="adminDetailOrdes" parameterType="int" resultMap="ordersdetail" >
+select o.ord_no, o.ord_name, o.ord_count, i.i_price*o.ord_count as totalPrice,
+		o.i_status, o.ord_address, o.ord_date, ord_edate,
+		mem_name, i.i_name, i.i_price, i.i_img    
+		from orders o, item i, member m where o.i_no=i.i_no and o.mem_no = m.mem_no 
+		and o.ord_no = #{ord_no}
+</select>		
+
+<!-- 주문 수정 -->
+<update id="updateOrders" parameterType="ovo">
+update orders set ord_name=#{ord_name}, ord_address=#{ord_address}, 
+				   i_status=#{i_status} 
+				   <if test='i_status.equals("배송완료")'>
+				   , ord_edate = sysdate,rcnt = 1
+				   </if>
+				where ord_no = #{ord_no}
+</update>
+
+
+<!-- 주문삭제 -->
+<delete id="deleteOrders" parameterType="int">
+	delete from orders where ord_no = #{ord_no} 
+</delete>
+
+<!-- 주문삭제 check 쿼리  -->
+<select id="deleteCheck" parameterType="int" resultType="int">
+select count(*) from orders where i_status = '주문취소' and ord_no = #{ord_no}
+</select>
+	
+
+</mapper>
